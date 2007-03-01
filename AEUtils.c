@@ -1,8 +1,9 @@
 #include "AEUtils.h"
+#include <sys/param.h>
+#define bufferSize MAXPATHLEN+1 	
 
 #define useLog 0
 
-#pragma mark for debug
 void showAEDesc(const AppleEvent *ev)
 {
 	Handle result;
@@ -30,10 +31,15 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
     Size actualSize;
 	Size dataSize;
 	CFStringEncoding encodeKey;
+	OSType a_type;
 	
 	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((err != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
 	if (dataSize == 0) {
-		//*outStr = CFSTR("");
+		*outStr = CFSTR("");
 		goto bail;
 	}
 	
@@ -44,6 +50,12 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
 		case typeUTF8Text:
 			encodeKey = kCFStringEncodingUTF8;
 			break;
+		case typeType:
+			err = AEGetParamPtr (ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
+			if (a_type == cMissingValue) {
+				goto bail;
+			}
+			//break;
 		default :
 			typeCode = typeUnicodeText;
 			encodeKey = kCFStringEncodingUnicode;
@@ -140,4 +152,26 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 	printf("end putBoolToReply\n");
 #endif
 	return err;
+}
+
+OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply)
+{	
+	OSErr err;
+	char buffer[bufferSize];
+	CFURLGetFileSystemRepresentation(inURL, true, (UInt8 *)buffer, bufferSize);
+	
+	AEDesc resultDesc;
+
+	err=AECreateDesc(typeUTF8Text, buffer, strlen(buffer), &resultDesc);
+	
+	
+	if (err != noErr) goto bail;
+	
+	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
+	if (err != noErr) {
+		AEDisposeDesc(&resultDesc);
+	}
+	
+bail:
+		return err;
 }
