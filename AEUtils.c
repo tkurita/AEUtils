@@ -20,6 +20,99 @@ void safeRelease(CFTypeRef theObj)
 	}
 }
 
+OSErr getURLFromUTextDesc(const AEDesc *utdesc_p, CFURLRef *urlRef_p)
+{
+	OSErr err;
+	Size theLength = AEGetDescDataSize(utdesc_p);
+	
+	UInt8 *theData = malloc(theLength);
+	err = AEGetDescData(utdesc_p, theData, theLength);
+	if (err != noErr) goto bail;
+	
+	CFStringRef pathStr = CFStringCreateWithBytes(NULL, theData, theLength, kCFStringEncodingUnicode, false);
+	
+	CFURLPathStyle pathStyle;
+	if (CFStringHasPrefix(pathStr, CFSTR("/"))) {
+		pathStyle = kCFURLPOSIXPathStyle;
+	}
+	else {
+		pathStyle = kCFURLHFSPathStyle;
+	}	
+	*urlRef_p = CFURLCreateWithFileSystemPath(NULL, pathStr, pathStyle, true);
+	CFRelease(pathStr);
+	
+bail:
+	free(theData);
+	return err;
+}
+
+OSStatus getFSRefFromUTextAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_p)
+{
+	AEDesc givenDesc;
+	OSStatus err = AEGetParamDesc(ev, theKey, typeUnicodeText, &givenDesc);
+#if useLog
+	showAEDesc(&givenDesc);
+#endif
+	if (err != noErr) goto bail;
+	
+	CFURLRef urlRef = NULL;
+	err = getURLFromUTextDesc(&givenDesc, &urlRef);
+	if (err != noErr) goto bail;
+	
+	Boolean canGetFSRef = 0;
+	if (urlRef != NULL) {
+		canGetFSRef = CFURLGetFSRef(urlRef, ref_p);
+	}
+	
+	if (! canGetFSRef) {
+		err = errAECoercionFail;
+	}
+
+bail:
+	safeRelease(urlRef);
+	return err;
+}
+
+OSStatus getFSRefFromAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_p)
+{
+	AEDesc givenDesc;
+	OSStatus err = AEGetParamDesc(ev, keyDirectObject, typeFSRef, &givenDesc);
+#if useLog
+	showAEDesc(&givenDesc);
+#endif
+	err = AEGetDescData(&givenDesc, ref_p, sizeof(FSRef));
+	return err;
+}
+
+OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef_p)
+{
+	OSErr err = noErr;		
+	DescType typeCode;
+	Size dataSize;
+	err = AESizeOfParam(ev, keyDirectObject, &typeCode, &dataSize);
+	
+	if (err != noErr) goto bail;
+	
+	switch (typeCode) {
+		case typeAlias:
+		case typeFSS:
+		case typeFileURL:
+		case cObjectSpecifier:
+			err = getFSRefFromAE(ev, theKey, outFSRef_p);
+			break;
+		case typeChar:
+		case typeUTF8Text:
+		case typeUnicodeText:
+			err = getFSRefFromUTextAE(ev, theKey, outFSRef_p);
+			break;
+		default:
+			err = errAEWrongDataType;
+	}
+
+bail:	
+	return err;
+}
+
 OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr)
 {
 #if useLog
@@ -92,6 +185,7 @@ bail:
 
 OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply)
 {
+// kEncoding can be omitted to specify with giving NULL
 #if useLog
 	printf("start putStringToReply\n");
 #endif
