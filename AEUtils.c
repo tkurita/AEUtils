@@ -145,7 +145,7 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
 			break;
 		case typeType:
 			err = AEGetParamPtr (ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
-			if (a_type == cMissingValue) {
+			if (a_type == 'msng') {
 				goto bail;
 			}
 			//break;
@@ -183,6 +183,26 @@ bail:
 	return err;
 }
 
+OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
+{
+	OSErr err;
+	DescType typeCode;
+	Size dataSize;
+	
+	*ismsng = false;
+	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((err != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
+	if (typeCode == 'msng') {
+		*ismsng = true;
+	}
+	
+bail:
+	return noErr;
+}
+
 OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply)
 {
 // kEncoding can be omitted to specify with giving NULL
@@ -191,7 +211,7 @@ OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent
 #endif
 	OSErr err;
 	DescType resultType;
-	
+
 	switch (kEncoding) {
 		case kCFStringEncodingUTF8 :
 			resultType = typeUTF8Text;
