@@ -145,7 +145,7 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
 			break;
 		case typeType:
 			err = AEGetParamPtr (ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
-			if (a_type == 'msng') {
+			if (a_type == cMissingValue) {
 				goto bail;
 			}
 			//break;
@@ -195,7 +195,7 @@ OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
 		goto bail;
 	}
 	
-	if (typeCode == 'msng') {
+	if (typeCode == cMissingValue) {
 		*ismsng = true;
 	}
 	
