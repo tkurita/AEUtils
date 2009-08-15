@@ -1,5 +1,6 @@
 #include "AEUtils.h"
 #include <sys/param.h>
+#include <Carbon/Carbon.h>
 #define bufferSize MAXPATHLEN+1 	
 
 #define useLog 0
