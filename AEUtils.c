@@ -96,7 +96,9 @@ OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef_p)
 	
 	switch (typeCode) {
 		case typeAlias:
+#if !__LP64__			
 		case typeFSS:
+#endif
 		case typeFileURL:
 		case cObjectSpecifier:
 			err = getFSRefFromAE(ev, theKey, outFSRef_p);
@@ -111,6 +113,74 @@ OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef_p)
 	}
 
 bail:	
+	return err;
+}
+
+CFNumberType CFNumberTypeWithAENumberType(DescType typeCode)
+{
+	CFNumberType result = 0;
+	switch (typeCode) {
+		case typeSInt16:
+			result = kCFNumberSInt16Type;
+			break;
+		case typeSInt32:
+			result = kCFNumberSInt32Type;
+			break;
+		case typeSInt64:
+			result = kCFNumberSInt64Type;
+			break;
+		case typeIEEE32BitFloatingPoint:
+			result =  kCFNumberFloat32Type;
+			break;
+		case typeIEEE64BitFloatingPoint:
+			result = kCFNumberFloat64Type;
+			break;
+		default:
+			break;
+	}
+	return result;
+}
+
+OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
+{
+	OSErr err;
+	DescType typeCode;
+	Size dataSize;
+	
+	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((err != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
+	AEDescList  aeList;
+	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
+	if (err != noErr) goto bail;
+	
+    long        count = 0;
+	err = AECountItems(&aeList, &count);
+	if (err != noErr) goto bail;
+	
+	
+	*outArray = CFArrayCreateMutable(NULL, 0, NULL);
+	
+    for(long index = 1; index <= count; index++) {
+		float value;
+		err = AEGetNthPtr(&aeList, index, typeIEEE32BitFloatingPoint,
+						  NULL, NULL, &value,
+						  sizeof(value), NULL);
+		if (err != noErr) {
+			fprintf(stderr, "Fail to AEGetNthPtr in getFloatArray\n");
+			goto bail;
+		}
+		CFNumberRef cfnum = CFNumberCreate(NULL, kCFNumberFloat32Type, &value);
+		CFArrayAppendValue(*outArray, cfnum);
+		//CFRelease(cfnum); // this statement cause error. I can't understand the reason.
+    }
+bail:
+#if useLog
+	CFShow(*outArray);
+	fprintf(stderr, "end of getFloatArray\n");
+#endif	
 	return err;
 }
 
@@ -313,6 +383,16 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 #if useLog
 	printf("end putBoolToReply\n");
 #endif
+	return err;
+}
+
+OSErr putMissingValueToReply(AppleEvent *reply)
+{
+	OSErr err;
+	DescType resultType = 'msng';
+	AEDesc resultDesc;
+	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
+	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
 	return err;
 }
 
