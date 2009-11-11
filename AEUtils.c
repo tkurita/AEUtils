@@ -396,6 +396,18 @@ OSErr putMissingValueToReply(AppleEvent *reply)
 	return err;
 }
 
+OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply)
+{
+	OSErr err;
+	AEDesc resultDesc;
+	HLock((Handle)inAlias);
+	err = AECreateDesc (typeAlias, (Ptr) (*inAlias),
+							GetHandleSize((Handle) inAlias), &resultDesc);
+	HUnlock((Handle)inAlias);
+	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
+	return err;
+}
+
 OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply)
 {	
 	OSErr err;
@@ -403,7 +415,6 @@ OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply)
 	CFURLGetFileSystemRepresentation(inURL, true, (UInt8 *)buffer, bufferSize);
 	
 	AEDesc resultDesc;
-
 	err=AECreateDesc(typeUTF8Text, buffer, strlen(buffer), &resultDesc);
 	
 	
