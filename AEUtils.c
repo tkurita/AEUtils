@@ -21,7 +21,28 @@ void safeRelease(CFTypeRef theObj)
 	}
 }
 
-OSErr getCFURLArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
+OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue)
+{
+	OSErr err;
+	DescType typeCode;
+	Size dataSize;
+	
+	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((err != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
+	if (typeCode == typeTrue) {
+		*outValue = true;
+	} else if(typeCode == typeFalse) {
+		*outValue = false;
+	}
+		
+bail:
+	return err;
+}
+
+OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
 {
 	OSErr err;
 	DescType typeCode;
@@ -55,7 +76,7 @@ OSErr getCFURLArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 							  data_size, NULL);
 		}
 		if (err != noErr) {
-			fprintf(stderr, "Fail to AEGetNthPtr in getCFURLArray\n");
+			fprintf(stderr, "Fail to AEGetNthPtr in getPOSIXPathArray\n");
 			goto bail;
 		}
 		CFURLRef file_url = CFURLCreateAbsoluteURLWithBytes(
@@ -74,7 +95,7 @@ OSErr getCFURLArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 bail:
 #if useLog
 	CFShow(*outArray);
-	fprintf(stderr, "end of getCFURLArray\n");
+	fprintf(stderr, "end of getPOSIXPathArray\n");
 #endif	
 	return err;
 }

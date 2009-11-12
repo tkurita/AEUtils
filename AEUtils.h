@@ -1,6 +1,7 @@
 #include <ApplicationServices/ApplicationServices.h>
 
-OSErr getCFURLArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
+OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
+OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
 OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
 OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr);
 OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef);
