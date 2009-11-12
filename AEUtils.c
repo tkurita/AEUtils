@@ -353,8 +353,9 @@ bail:
 	return noErr;
 }
 
-OSErr CFStringToAESesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
+OSErr CFStringToAEDesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
 {
+	// kEncoding can be omitted to specify with giving NULL
 	OSErr err;
 	DescType resultType;
 	
@@ -370,9 +371,9 @@ OSErr CFStringToAESesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* o
 	if (constBuff == NULL) {
 		char *buffer;
 		CFIndex charLen = CFStringGetLength(string);
-		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding);
-		buffer = malloc(maxLen+1);
-		CFStringGetCString(string, buffer, maxLen+1, kEncoding);
+		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding)+1; // +1 is for null termination.
+		buffer = malloc(sizeof(char)*maxLen);
+		CFStringGetCString(string, buffer, maxLen, kEncoding);
 		err=AECreateDesc(resultType, buffer, strlen(buffer), outDescPtr);
 		free(buffer);
 	}
@@ -392,7 +393,7 @@ OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, 
 	for (int n = 0; n < CFArrayGetCount(array); n++) {
 		CFStringRef string = CFArrayGetValueAtIndex(array, n);
 		AEDesc string_desc;
-		err = CFStringToAESesc(string, kEncoding, &string_desc);
+		err = CFStringToAEDesc(string, kEncoding, &string_desc);
 		if (err != noErr) goto bail;
 		err = AEPutDesc(&resultList, n+1, &string_desc);
 		AEDisposeDesc(&string_desc);
@@ -409,41 +410,18 @@ OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFS
 #if useLog
 	fprintf(stderr, "start putStringToEvent\n");
 #endif
-	OSErr err;
-	DescType resultType;
-	
-	switch (kEncoding) {
-		case kCFStringEncodingUTF8 :
-			resultType = typeUTF8Text;
-			break;
-		default :
-			resultType = typeUnicodeText;
-	}
-	
-	const char *constBuff = CFStringGetCStringPtr(inStr, kEncoding);
-	
+	OSErr err;	
 	AEDesc resultDesc;
-	if (constBuff == NULL) {
-		char *buffer;
-		CFIndex charLen = CFStringGetLength(inStr);
-		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding);
-		buffer = malloc(maxLen+1);
-		CFStringGetCString(inStr, buffer, maxLen+1, kEncoding);
-		err=AECreateDesc(resultType, buffer, strlen(buffer), &resultDesc);
-		free(buffer);
-	}
-	else {
-		err=AECreateDesc(resultType, constBuff, strlen(constBuff), &resultDesc);
-	}
-	
-	
+	err = CFStringToAEDesc(inStr, kEncoding, &resultDesc);
 	if (err != noErr) goto bail;
 	
 	err = AEPutParamDesc(ev, keyword, &resultDesc);
+	/*
 	if (err != noErr) {
 		AEDisposeDesc(&resultDesc);
 	}
-	
+	 */
+	AEDisposeDesc(&resultDesc);
 bail:
 #if useLog
 	fprintf(stderr, "end putStringToEvent\n");
@@ -454,49 +432,7 @@ bail:
 OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply)
 {
 // kEncoding can be omitted to specify with giving NULL
-#if useLog
-	printf("start putStringToReply\n");
-#endif
-	OSErr err;
-	DescType resultType;
-
-	switch (kEncoding) {
-		case kCFStringEncodingUTF8 :
-			resultType = typeUTF8Text;
-			break;
-		default :
-			resultType = typeUnicodeText;
-	}
-	
-	const char *constBuff = CFStringGetCStringPtr(inStr, kEncoding);
-	
-	AEDesc resultDesc;
-	if (constBuff == NULL) {
-		char *buffer;
-		CFIndex charLen = CFStringGetLength(inStr);
-		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding);
-		buffer = malloc(maxLen+1);
-		CFStringGetCString(inStr, buffer, maxLen+1, kEncoding);
-		err=AECreateDesc(resultType, buffer, strlen(buffer), &resultDesc);
-		free(buffer);
-	}
-	else {
-		err=AECreateDesc(resultType, constBuff, strlen(constBuff), &resultDesc);
-	}
-	
-	
-	if (err != noErr) goto bail;
-	
-	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
-	if (err != noErr) {
-		AEDisposeDesc(&resultDesc);
-	}
-	
-bail:
-#if useLog
-	printf("end putStringToReply\n");
-#endif
-	return err;
+	return putStringToEvent(reply, keyAEResult, inStr, kEncoding);
 }
 
 OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
