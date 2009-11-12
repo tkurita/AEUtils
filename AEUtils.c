@@ -445,7 +445,7 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 	AEDesc resultDesc;
 	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
-	
+	AEDisposeDesc(&resultDesc);
 #if useLog
 	printf("end putBoolToReply\n");
 #endif
@@ -459,6 +459,7 @@ OSErr putMissingValueToReply(AppleEvent *reply)
 	AEDesc resultDesc;
 	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
+	AEDisposeDesc(&resultDesc);
 	return err;
 }
 
@@ -467,10 +468,11 @@ OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply)
 	OSErr err;
 	AEDesc resultDesc;
 	HLock((Handle)inAlias);
-	err = AECreateDesc (typeAlias, (Ptr) (*inAlias),
+	err = AECreateDesc(typeAlias, (Ptr) (*inAlias),
 							GetHandleSize((Handle) inAlias), &resultDesc);
 	HUnlock((Handle)inAlias);
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
+	AEDisposeDesc(&resultDesc);
 	return err;
 }
 
@@ -487,9 +489,9 @@ OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply)
 	if (err != noErr) goto bail;
 	
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
-	if (err != noErr) {
-		AEDisposeDesc(&resultDesc);
-	}
+	//if (err != noErr) {
+	AEDisposeDesc(&resultDesc);
+	//}
 	
 bail:
 		return err;
