@@ -21,6 +21,64 @@ void safeRelease(CFTypeRef theObj)
 	}
 }
 
+OSErr getCFURLArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
+{
+	OSErr err;
+	DescType typeCode;
+	Size dataSize;
+	
+	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((err != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
+	AEDescList  aeList;
+	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
+	if (err != noErr) goto bail;
+	
+    long        count = 0;
+	err = AECountItems(&aeList, &count);
+	if (err != noErr) goto bail;
+	
+	*outArray = CFArrayCreateMutable(NULL, count, &kCFTypeArrayCallBacks);
+	
+	for(long index = 1; index <= count; index++) {
+		void *value_ptr;
+		Size data_size;
+		err = AEGetNthPtr(&aeList, index, typeFileURL,
+						  NULL, NULL, value_ptr,
+						  0, &data_size);
+		if (err == noErr) {
+			value_ptr = malloc(data_size);
+			err = AEGetNthPtr(&aeList, index, typeFileURL,
+							  NULL, NULL, value_ptr,
+							  data_size, NULL);
+		}
+		if (err != noErr) {
+			fprintf(stderr, "Fail to AEGetNthPtr in getCFURLArray\n");
+			goto bail;
+		}
+		CFURLRef file_url = CFURLCreateAbsoluteURLWithBytes(
+												  NULL,
+												  (const UInt8 *)value_ptr,
+												  data_size,
+												  kCFStringEncodingUTF8,
+												  NULL,
+												  false);
+		CFStringRef path = CFURLCopyFileSystemPath(file_url, kCFURLPOSIXPathStyle);
+		CFArrayAppendValue(*outArray, path);		
+		CFRelease(file_url);
+		CFRelease(path);
+		free(value_ptr);
+    }
+bail:
+#if useLog
+	CFShow(*outArray);
+	fprintf(stderr, "end of getCFURLArray\n");
+#endif	
+	return err;
+}
+
 OSErr getURLFromUTextDesc(const AEDesc *utdesc_p, CFURLRef *urlRef_p)
 {
 	OSErr err;
@@ -161,7 +219,7 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 	if (err != noErr) goto bail;
 	
 	
-	*outArray = CFArrayCreateMutable(NULL, 0, NULL);
+	*outArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	
     for(long index = 1; index <= count; index++) {
 		float value;
@@ -174,7 +232,7 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 		}
 		CFNumberRef cfnum = CFNumberCreate(NULL, kCFNumberFloat32Type, &value);
 		CFArrayAppendValue(*outArray, cfnum);
-		//CFRelease(cfnum); // this statement cause error. I can't understand the reason.
+		CFRelease(cfnum);
     }
 bail:
 #if useLog
@@ -274,6 +332,57 @@ bail:
 	return noErr;
 }
 
+OSErr CFStringToAESesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
+{
+	OSErr err;
+	DescType resultType;
+	
+	switch (kEncoding) {
+		case kCFStringEncodingUTF8 :
+			resultType = typeUTF8Text;
+			break;
+		default :
+			resultType = typeUnicodeText;
+	}
+	
+	const char *constBuff = CFStringGetCStringPtr(string, kEncoding);
+	if (constBuff == NULL) {
+		char *buffer;
+		CFIndex charLen = CFStringGetLength(string);
+		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding);
+		buffer = malloc(maxLen+1);
+		CFStringGetCString(string, buffer, maxLen+1, kEncoding);
+		err=AECreateDesc(resultType, buffer, strlen(buffer), outDescPtr);
+		free(buffer);
+	}
+	else {
+		err=AECreateDesc(resultType, constBuff, strlen(constBuff), outDescPtr);
+	}
+	
+	return err;
+}
+
+OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, CFStringEncoding kEncoding)
+{
+	OSErr err;
+	AEDescList resultList;
+	err = AECreateList(NULL, 0, FALSE, &resultList);
+	
+	for (int n = 0; n < CFArrayGetCount(array); n++) {
+		CFStringRef string = CFArrayGetValueAtIndex(array, n);
+		AEDesc string_desc;
+		err = CFStringToAESesc(string, kEncoding, &string_desc);
+		if (err != noErr) goto bail;
+		err = AEPutDesc(&resultList, n+1, &string_desc);
+		AEDisposeDesc(&string_desc);
+	}
+	
+	err = AEPutParamDesc(ev, keyword, &resultList);
+bail:
+	AEDisposeDesc(&resultList);
+	return err;
+}
+
 OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFStringEncoding kEncoding)
 {
 #if useLog
@@ -309,7 +418,7 @@ OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFS
 	
 	if (err != noErr) goto bail;
 	
-	err=AEPutParamDesc(ev, keyword, &resultDesc);
+	err = AEPutParamDesc(ev, keyword, &resultDesc);
 	if (err != noErr) {
 		AEDisposeDesc(&resultDesc);
 	}
