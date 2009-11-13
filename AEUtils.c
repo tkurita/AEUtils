@@ -64,7 +64,7 @@ OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayR
 	*outArray = CFArrayCreateMutable(NULL, count, &kCFTypeArrayCallBacks);
 	
 	for(long index = 1; index <= count; index++) {
-		void *value_ptr;
+		void *value_ptr = NULL;
 		Size data_size;
 		err = AEGetNthPtr(&aeList, index, typeFileURL,
 						  NULL, NULL, value_ptr,
