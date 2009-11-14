@@ -235,10 +235,9 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
 	if (err != noErr) goto bail;
 	
-    long        count = 0;
+    long count = 0;
 	err = AECountItems(&aeList, &count);
 	if (err != noErr) goto bail;
-	
 	
 	*outArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	
@@ -294,7 +293,7 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
 			encodeKey = kCFStringEncodingUTF8;
 			break;
 		case typeType:
-			err = AEGetParamPtr (ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
+			err = AEGetParamPtr(ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
 			if (a_type == cMissingValue) {
 				goto bail;
 			}
@@ -316,7 +315,7 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
 			printf("fail to reallocate memory\n");
 			goto bail;
 		}
-		err = AEGetParamPtr (ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
+		err = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
 	}
 	
 	if (err != noErr) {
@@ -345,6 +344,17 @@ OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
 		goto bail;
 	}
 	
+	if (typeCode == typeType) {
+		OSType type_data;
+		err = AEGetParamPtr(ev, theKey, typeCode, NULL, &type_data, dataSize, NULL);
+		if (err != noErr) {
+			fprintf(stderr, "Failed to AEGetParamPtr in isMissingValue\n");
+			goto bail;
+		}
+		if (type_data == cMissingValue) {
+			*ismsng = true;
+		}
+	}
 	if (typeCode == cMissingValue) {
 		*ismsng = true;
 	}
