@@ -3,10 +3,12 @@
 CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(const AppleEvent *ev, 
 														  AEKeyword theKey, OSErr *errPtr);
 
+CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
+
 OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
 OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);// deprecated
 OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
-OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr);
+OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr);// deprecated
 OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef);
 OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng);
 
