@@ -47,13 +47,14 @@ OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayR
 	OSErr err;
 	DescType typeCode;
 	Size dataSize;
+	AEDescList  aeList;
+	AECreateDesc(typeNull, NULL, 0, &aeList);
 	
 	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
 	if ((err != noErr) || (typeCode == typeNull)){
 		goto bail;
 	}
 	
-	AEDescList  aeList;
 	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
 	if (err != noErr) goto bail;
 	
@@ -93,6 +94,7 @@ OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayR
 		free(value_ptr);
     }
 bail:
+	AEDisposeDesc(&aeList);
 #if useLog
 	CFShow(*outArray);
 	fprintf(stderr, "end of getPOSIXPathArray\n");
@@ -225,13 +227,13 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 	OSErr err;
 	DescType typeCode;
 	Size dataSize;
-	
+	AEDescList aeList;
+	AECreateDesc(typeNull, NULL, 0, &aeList);
 	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
 	if ((err != noErr) || (typeCode == typeNull)){
 		goto bail;
 	}
 	
-	AEDescList  aeList;
 	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
 	if (err != noErr) goto bail;
 	
@@ -255,6 +257,7 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 		CFRelease(cfnum);
     }
 bail:
+	AEDisposeDesc(&aeList);
 #if useLog
 	CFShow(*outArray);
 	fprintf(stderr, "end of getFloatArray\n");
