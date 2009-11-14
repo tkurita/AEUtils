@@ -42,6 +42,71 @@ bail:
 	return err;
 }
 
+
+CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(
+								  const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr)
+{
+	CFMutableArrayRef outArray = NULL;
+	DescType typeCode;
+	Size dataSize;
+	AEDescList  aeList;
+	AECreateDesc(typeNull, NULL, 0, &aeList);
+	
+	*errPtr = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((*errPtr != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
+	*errPtr = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
+	if (*errPtr != noErr) goto bail;
+	
+    long        count = 0;
+	*errPtr = AECountItems(&aeList, &count);
+	if (*errPtr != noErr) goto bail;
+	
+	outArray = CFArrayCreateMutable(NULL, count, &kCFTypeArrayCallBacks);
+	
+	for(long index = 1; index <= count; index++) {
+		void *value_ptr = NULL;
+		Size data_size;
+		*errPtr = AEGetNthPtr(&aeList, index, typeFileURL,
+						  NULL, NULL, value_ptr,
+						  0, &data_size);
+		if (*errPtr == noErr) {
+			value_ptr = malloc(data_size);
+			*errPtr = AEGetNthPtr(&aeList, index, typeFileURL,
+							  NULL, NULL, value_ptr,
+							  data_size, NULL);
+		}
+		if (*errPtr != noErr) {
+			fprintf(stderr, "Fail to AEGetNthPtr in getPOSIXPathArray\n");
+			goto bail;
+		}
+		CFURLRef file_url = CFURLCreateAbsoluteURLWithBytes(
+															NULL,
+															(const UInt8 *)value_ptr,
+															data_size,
+															kCFStringEncodingUTF8,
+															NULL,
+															false);
+		CFStringRef path = CFURLCopyFileSystemPath(file_url, kCFURLPOSIXPathStyle);
+		CFArrayAppendValue(outArray, path);		
+		CFRelease(file_url);
+		CFRelease(path);
+		free(value_ptr);
+    }
+bail:
+	AEDisposeDesc(&aeList);
+	return outArray;
+}
+
+OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
+{
+	OSErr err = noErr;
+	*outArray = CFMutableArrayCreatePOSIXPathsWithEvent(ev, theKey, &err);
+	return err;
+}
+/*
 OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
 {
 	OSErr err;
@@ -101,6 +166,7 @@ bail:
 #endif	
 	return err;
 }
+*/
 
 OSErr getURLFromUTextDesc(const AEDesc *utdesc_p, CFURLRef *urlRef_p)
 {
