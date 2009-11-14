@@ -79,7 +79,7 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(
 							  data_size, NULL);
 		}
 		if (*errPtr != noErr) {
-			fprintf(stderr, "Fail to AEGetNthPtr in getPOSIXPathArray\n");
+			fprintf(stderr, "Fail to AEGetNthPtr in CFMutableArrayCreatePOSIXPathsWithEvent\n");
 			goto bail;
 		}
 		CFURLRef file_url = CFURLCreateAbsoluteURLWithBytes(
@@ -100,73 +100,13 @@ bail:
 	return outArray;
 }
 
+/* deprecated */
 OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
 {
 	OSErr err = noErr;
 	*outArray = CFMutableArrayCreatePOSIXPathsWithEvent(ev, theKey, &err);
 	return err;
 }
-/*
-OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
-{
-	OSErr err;
-	DescType typeCode;
-	Size dataSize;
-	AEDescList  aeList;
-	AECreateDesc(typeNull, NULL, 0, &aeList);
-	
-	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
-	if ((err != noErr) || (typeCode == typeNull)){
-		goto bail;
-	}
-	
-	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
-	if (err != noErr) goto bail;
-	
-    long        count = 0;
-	err = AECountItems(&aeList, &count);
-	if (err != noErr) goto bail;
-	
-	*outArray = CFArrayCreateMutable(NULL, count, &kCFTypeArrayCallBacks);
-	
-	for(long index = 1; index <= count; index++) {
-		void *value_ptr = NULL;
-		Size data_size;
-		err = AEGetNthPtr(&aeList, index, typeFileURL,
-						  NULL, NULL, value_ptr,
-						  0, &data_size);
-		if (err == noErr) {
-			value_ptr = malloc(data_size);
-			err = AEGetNthPtr(&aeList, index, typeFileURL,
-							  NULL, NULL, value_ptr,
-							  data_size, NULL);
-		}
-		if (err != noErr) {
-			fprintf(stderr, "Fail to AEGetNthPtr in getPOSIXPathArray\n");
-			goto bail;
-		}
-		CFURLRef file_url = CFURLCreateAbsoluteURLWithBytes(
-												  NULL,
-												  (const UInt8 *)value_ptr,
-												  data_size,
-												  kCFStringEncodingUTF8,
-												  NULL,
-												  false);
-		CFStringRef path = CFURLCopyFileSystemPath(file_url, kCFURLPOSIXPathStyle);
-		CFArrayAppendValue(*outArray, path);		
-		CFRelease(file_url);
-		CFRelease(path);
-		free(value_ptr);
-    }
-bail:
-	AEDisposeDesc(&aeList);
-#if useLog
-	CFShow(*outArray);
-	fprintf(stderr, "end of getPOSIXPathArray\n");
-#endif	
-	return err;
-}
-*/
 
 OSErr getURLFromUTextDesc(const AEDesc *utdesc_p, CFURLRef *urlRef_p)
 {
@@ -331,6 +271,79 @@ bail:
 	return err;
 }
 
+CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr)
+{
+	CFStringRef outStr = NULL;
+	DescType typeCode;
+	DescType returnedType;
+    Size actualSize;
+	Size dataSize;
+	CFStringEncoding encodeKey;
+	OSType a_type;
+	
+	*errPtr = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
+	if ((*errPtr != noErr) || (typeCode == typeNull)){
+		goto bail;
+	}
+	
+	if (dataSize == 0) {
+		outStr = CFSTR("");
+		goto bail;
+	}
+	
+	switch (typeCode) {
+		case typeChar:
+			encodeKey = CFStringGetSystemEncoding();
+			break;
+		case typeUTF8Text:
+			encodeKey = kCFStringEncodingUTF8;
+			break;
+		case typeType:
+			*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
+			if (a_type == cMissingValue) {
+				goto bail;
+			}
+			//break;
+		default :
+			typeCode = typeUnicodeText;
+			encodeKey = kCFStringEncodingUnicode;
+	}
+	
+	UInt8 *dataPtr = malloc(dataSize);
+	*errPtr = AEGetParamPtr (ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
+	if (actualSize > dataSize) {
+#if useLog
+		printf("buffere size is allocated. data:%i actual:%i\n", dataSize, actualSize);
+#endif	
+		dataSize = actualSize;
+		dataPtr = (UInt8 *)realloc(dataPtr, dataSize);
+		if (dataPtr == NULL) {
+			printf("fail to reallocate memory\n");
+			goto bail;
+		}
+		*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
+	}
+	
+	if (*errPtr != noErr) {
+		free(dataPtr);
+		goto bail;
+	}
+	
+	outStr = CFStringCreateWithBytes(NULL, dataPtr, dataSize, encodeKey, false);
+	free(dataPtr);
+bail:
+	return outStr;	
+}
+
+/* deprecated */
+OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr)
+{
+	OSErr err = noErr;
+	*outStr = CFStringCreateWithEvent(ev, theKey, &err);
+	return err;
+}
+
+/*
 OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr)
 {
 #if useLog
@@ -400,6 +413,7 @@ bail:
 #endif
 	return err;
 }
+*/
 
 OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
 {
