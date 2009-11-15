@@ -490,7 +490,7 @@ OSErr AEDescCreateUnicodeText(CFStringRef string, AEDesc* outDescPtr)
 	return err;
 }
 
-OSErr CFStringToAEDesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
+OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
 {
 	// kEncoding can be omitted to specify with giving NULL
 	OSErr err;
@@ -517,7 +517,7 @@ OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, 
 	for (int n = 0; n < CFArrayGetCount(array); n++) {
 		CFStringRef string = CFArrayGetValueAtIndex(array, n);
 		AEDesc string_desc;
-		err = CFStringToAEDesc(string, kEncoding, &string_desc);
+		err = AEDescCreateWithCFString(string, kEncoding, &string_desc);
 		if (err != noErr) goto bail;
 		err = AEPutDesc(&resultList, n+1, &string_desc);
 		AEDisposeDesc(&string_desc);
@@ -536,7 +536,7 @@ OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFS
 #endif
 	OSErr err;	
 	AEDesc resultDesc;
-	err = CFStringToAEDesc(inStr, kEncoding, &resultDesc);
+	err = AEDescCreateWithCFString(inStr, kEncoding, &resultDesc);
 	if (err != noErr) goto bail;
 	
 	err = AEPutParamDesc(ev, keyword, &resultDesc);
