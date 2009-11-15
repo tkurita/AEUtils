@@ -446,20 +446,11 @@ bail:
 	return noErr;
 }
 
-OSErr CFStringToAEDesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
+OSErr AEDescCreateUTF8Text(CFStringRef string, AEDesc* outDescPtr)
 {
-	// kEncoding can be omitted to specify with giving NULL
-	OSErr err;
-	DescType resultType;
-	
-	switch (kEncoding) {
-		case kCFStringEncodingUTF8 :
-			resultType = typeUTF8Text;
-			break;
-		default :
-			resultType = typeUnicodeText;
-	}
-	
+	OSErr err = noErr;
+	CFStringEncoding kEncoding = kCFStringEncodingUTF8;
+	DescType resultType = typeUTF8Text;
 	const char *constBuff = CFStringGetCStringPtr(string, kEncoding);
 	if (constBuff == NULL) {
 		char *buffer;
@@ -467,13 +458,53 @@ OSErr CFStringToAEDesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* o
 		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding)+1; // +1 is for null termination.
 		buffer = malloc(sizeof(char)*maxLen);
 		CFStringGetCString(string, buffer, maxLen, kEncoding);
-		err=AECreateDesc(resultType, buffer, strlen(buffer), outDescPtr);
+		fprintf(stderr, buffer);
+		err = AECreateDesc(resultType, buffer, strlen(buffer), outDescPtr);
 		free(buffer);
 	}
 	else {
 		err=AECreateDesc(resultType, constBuff, strlen(constBuff), outDescPtr);
 	}
 	
+	return err;
+}
+
+OSErr AEDescCreateUnicodeText(CFStringRef string, AEDesc* outDescPtr)
+{
+	OSErr err = noErr;
+	DescType resultType = typeUnicodeText;
+	
+	UniCharCount length = CFStringGetLength(string);
+	const UniChar *constBuff = CFStringGetCharactersPtr(string);
+	if (constBuff == NULL) {
+		UniChar *buffer;
+		buffer = malloc(sizeof(UniChar)*length);
+		CFStringGetCharacters(string, CFRangeMake(0, length), buffer);
+		err = AECreateDesc(resultType, buffer, sizeof(UniChar)*length, outDescPtr);
+		free(buffer);
+	}
+	else {
+		err=AECreateDesc(resultType, constBuff, length*sizeof(UniChar), outDescPtr);
+	}
+	
+	return err;
+}
+
+OSErr CFStringToAEDesc(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr)
+{
+	// kEncoding can be omitted to specify with giving NULL
+	OSErr err;
+	DescType resultType;
+
+	switch (kEncoding) {
+		case kCFStringEncodingUTF8 :
+			resultType = typeUTF8Text;
+			err = AEDescCreateUTF8Text(string, outDescPtr);
+			break;
+		default :
+			resultType = typeUnicodeText;
+			err = AEDescCreateUnicodeText(string, outDescPtr);
+	}
 	return err;
 }
 
@@ -509,11 +540,6 @@ OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFS
 	if (err != noErr) goto bail;
 	
 	err = AEPutParamDesc(ev, keyword, &resultDesc);
-	/*
-	if (err != noErr) {
-		AEDisposeDesc(&resultDesc);
-	}
-	 */
 	AEDisposeDesc(&resultDesc);
 bail:
 #if useLog
