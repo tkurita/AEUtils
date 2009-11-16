@@ -157,6 +157,7 @@ OSStatus getFSRefFromUTextAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_
 	}
 
 bail:
+	AEDisposeDesc(&givenDesc);
 	safeRelease(urlRef);
 	return err;
 }
@@ -169,6 +170,7 @@ OSStatus getFSRefFromAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_p)
 	showAEDesc(&givenDesc);
 #endif
 	err = AEGetDescData(&givenDesc, ref_p, sizeof(FSRef));
+	AEDisposeDesc(&givenDesc);
 	return err;
 }
 
