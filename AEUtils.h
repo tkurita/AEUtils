@@ -23,12 +23,11 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply);
  == kEncoding
 	kCFStringEncodingUTF8, kCFStringEncodingUnicode
 */
-
 OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFStringEncoding kEncoding);
 OSErr putMissingValueToReply(AppleEvent *reply);
 OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply);
 OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply);
 
 //deprecated
-// use putStringToEvent(AppleEvent *ev, keyAEResult, CFStringRef inStr, CFStringEncoding kEncoding); 
-OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply);
+// use putStringToEvent
+// OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply);
