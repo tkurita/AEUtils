@@ -273,6 +273,36 @@ bail:
 	return err;
 }
 
+CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr)
+{
+	CFURLRef file_url = NULL;
+	Size data_size;
+	void *value_ptr = NULL;
+	
+	*errPtr = AEGetParamPtr(ev, theKey, typeFileURL, NULL, NULL, 0, &data_size);
+	if (*errPtr != noErr) goto bail;
+	value_ptr = malloc(data_size);
+	if (value_ptr == NULL) {
+		fprintf(stderr, "Faild to malloc in CFStringCreatePOSIXPathWithEvent\n");
+		goto bail;
+	}
+	*errPtr = AEGetParamPtr(ev, theKey, typeFileURL, NULL, value_ptr, data_size, NULL);
+	if (*errPtr != noErr) {
+		free(value_ptr);
+		goto bail;
+	}
+	
+	file_url = CFURLCreateAbsoluteURLWithBytes(NULL,
+											(const UInt8 *)value_ptr,
+											data_size,
+											kCFStringEncodingUTF8,
+											NULL,
+											false);
+	free(value_ptr);
+bail:
+	return file_url;
+}
+
 CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr)
 {
 	CFStringRef outStr = NULL;
@@ -312,7 +342,16 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 	}
 	
 	UInt8 *dataPtr = malloc(dataSize);
-	*errPtr = AEGetParamPtr (ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
+	if (dataPtr == NULL) {
+		*errPtr = errAEEventFailed;
+		fprintf(stderr, "Failed to malloc.\n");
+		goto bail;
+	}
+	*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
+	if (*errPtr = !noErr) {
+		free(dataPtr);
+		goto bail;
+	}
 	if (actualSize > dataSize) {
 #if useLog
 		printf("buffere size is allocated. data:%i actual:%i\n", dataSize, actualSize);
@@ -320,18 +359,16 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 		dataSize = actualSize;
 		dataPtr = (UInt8 *)realloc(dataPtr, dataSize);
 		if (dataPtr == NULL) {
-			printf("fail to reallocate memory\n");
+			fprintf(stderr, "Failed to reallocate memory\n");
 			goto bail;
 		}
 		*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
 	}
 	
-	if (*errPtr != noErr) {
-		free(dataPtr);
-		goto bail;
+	if (*errPtr == noErr) {
+		outStr = CFStringCreateWithBytes(NULL, dataPtr, dataSize, encodeKey, false);
 	}
 	
-	outStr = CFStringCreateWithBytes(NULL, dataPtr, dataSize, encodeKey, false);
 	free(dataPtr);
 bail:
 	return outStr;	
@@ -345,77 +382,6 @@ OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr
 	return err;
 }
 
-/*
-OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr)
-{
-#if useLog
-	printf("start getStringValue\n");
-#endif
-	OSErr err;
-	DescType typeCode;
-	DescType returnedType;
-    Size actualSize;
-	Size dataSize;
-	CFStringEncoding encodeKey;
-	OSType a_type;
-	
-	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
-	if ((err != noErr) || (typeCode == typeNull)){
-		goto bail;
-	}
-	
-	if (dataSize == 0) {
-		*outStr = CFSTR("");
-		goto bail;
-	}
-	
-	switch (typeCode) {
-		case typeChar:
-			encodeKey = CFStringGetSystemEncoding();
-			break;
-		case typeUTF8Text:
-			encodeKey = kCFStringEncodingUTF8;
-			break;
-		case typeType:
-			err = AEGetParamPtr(ev, theKey, typeCode, &returnedType, &a_type, dataSize, &actualSize);
-			if (a_type == cMissingValue) {
-				goto bail;
-			}
-			//break;
-		default :
-			typeCode = typeUnicodeText;
-			encodeKey = kCFStringEncodingUnicode;
-	}
-	
-	UInt8 *dataPtr = malloc(dataSize);
-	err = AEGetParamPtr (ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
-	if (actualSize > dataSize) {
-#if useLog
-		printf("buffere size is allocated. data:%i actual:%i\n", dataSize, actualSize);
-#endif	
-		dataSize = actualSize;
-		dataPtr = (UInt8 *)realloc(dataPtr, dataSize);
-		if (dataPtr == NULL) {
-			printf("fail to reallocate memory\n");
-			goto bail;
-		}
-		err = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
-	}
-	
-	if (err != noErr) {
-		free(dataPtr);
-		goto bail;
-	}
-	
-	*outStr = CFStringCreateWithBytes(NULL, dataPtr, dataSize, encodeKey, false);
-	free(dataPtr);
-bail:
-#if useLog		
-	printf("end getStringValue\n");
-#endif
-	return err;
-}
-*/
 
 OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
 {

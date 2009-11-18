@@ -4,6 +4,7 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(const AppleEvent *ev,
 														  AEKeyword theKey, OSErr *errPtr);
 
 CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
+CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
 
 OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
 //OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);// deprecated
