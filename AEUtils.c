@@ -348,7 +348,7 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 		goto bail;
 	}
 	*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
-	if (*errPtr = !noErr) {
+	if (*errPtr != noErr) {
 		free(dataPtr);
 		goto bail;
 	}
