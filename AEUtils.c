@@ -60,7 +60,7 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(
 	*errPtr = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
 	if (*errPtr != noErr) goto bail;
 	
-    long        count = 0;
+    long count = 0;
 	*errPtr = AECountItems(&aeList, &count);
 	if (*errPtr != noErr) goto bail;
 	
