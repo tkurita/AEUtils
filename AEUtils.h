@@ -5,6 +5,7 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(const AppleEvent *ev,
 
 CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
 CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
+OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr);
 
 OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
 //OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);// deprecated
@@ -32,3 +33,5 @@ OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply);
 //deprecated
 // use putStringToEvent
 // OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply);
+
+OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *outDesc);

@@ -583,3 +583,21 @@ OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply)
 bail:
 		return err;
 }
+
+OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *outDesc)
+{
+	OSErr err = noErr;
+	OSAID script_id = kOSANullScript;
+	CFAttributedStringRef source_text = NULL;
+	err = OSACoerceFromDesc(component, inDesc, kOSAModeNull, &script_id);
+	if (noErr != err) goto bail;
+	err = OSACopySourceString(component, script_id, kOSAModeNull, &source_text);
+	if (noErr != err) goto bail;
+	CFStringRef plain_text = CFAttributedStringGetString(source_text);
+	CFShow(plain_text);
+	err = AEDescCreateWithCFString(plain_text, kCFStringEncodingUTF8, outDesc);
+bail:
+	OSADispose(component, script_id);
+	safeRelease(source_text);
+	return err;
+}
