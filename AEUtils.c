@@ -239,16 +239,21 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 	AECreateDesc(typeNull, NULL, 0, &aeList);
 	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
 	if ((err != noErr) || (typeCode == typeNull)){
+		fprintf(stderr, "Failed to AESizeOfParam in getFloatArray\n");
 		goto bail;
 	}
 	
 	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
-	if (err != noErr) goto bail;
-	
+	if (err != noErr) {
+		fprintf(stderr, "Failed to AEGetParamDesc in getFloatArray\n");
+		goto bail;
+	}
     long count = 0;
 	err = AECountItems(&aeList, &count);
-	if (err != noErr) goto bail;
-	
+	if (err != noErr) {
+		fprintf(stderr, "Failed to AECountItems in getFloatArray\n");
+		goto bail;
+	}
 	*outArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	
     for(long index = 1; index <= count; index++) {
