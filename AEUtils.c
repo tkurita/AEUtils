@@ -546,11 +546,10 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 
 OSErr putMissingValueToReply(AppleEvent *reply)
 {
+	const static DescType missingValue = cMissingValue;
 	OSErr err;
-	DescType resultType = 'msng';
-	AEDesc resultDesc;
-	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
-	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
+	err = AECreateDesc(typeType, &missingValue, sizeof(missingValue), &resultDesc);
+	err = AEPutParamDesc(reply, keyAEResult, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 	return err;
 }
