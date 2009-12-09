@@ -548,8 +548,9 @@ OSErr putMissingValueToReply(AppleEvent *reply)
 {
 	const static DescType missingValue = cMissingValue;
 	OSErr err;
-	err = AECreateDesc(typeType, &missingValue, sizeof(missingValue), &resultDesc);
-	err = AEPutParamDesc(reply, keyAEResult, &resultDesc);
+	AEDesc resultDesc;
+	AECreateDesc(typeType, &missingValue, sizeof(missingValue), &resultDesc);
+	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 	return err;
 }
