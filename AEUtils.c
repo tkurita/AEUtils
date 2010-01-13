@@ -79,7 +79,7 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(
 							  data_size, NULL);
 		}
 		if (*errPtr != noErr) {
-			fprintf(stderr, "Fail to AEGetNthPtr in CFMutableArrayCreatePOSIXPathsWithEvent\n");
+			fputs("Fail to AEGetNthPtr in CFMutableArrayCreatePOSIXPathsWithEvent", stderr);
 			goto bail;
 		}
 		CFURLRef file_url = CFURLCreateAbsoluteURLWithBytes(
@@ -239,19 +239,19 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 	AECreateDesc(typeNull, NULL, 0, &aeList);
 	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
 	if ((err != noErr) || (typeCode == typeNull)){
-		fprintf(stderr, "Failed to AESizeOfParam in getFloatArray\n");
+		fputs("Failed to AESizeOfParam in getFloatArray", stderr);
 		goto bail;
 	}
 	
 	err = AEGetParamDesc(ev, theKey, typeAEList, &aeList);
 	if (err != noErr) {
-		fprintf(stderr, "Failed to AEGetParamDesc in getFloatArray\n");
+		fputs("Failed to AEGetParamDesc in getFloatArray", stderr);
 		goto bail;
 	}
     long count = 0;
 	err = AECountItems(&aeList, &count);
 	if (err != noErr) {
-		fprintf(stderr, "Failed to AECountItems in getFloatArray\n");
+		fputs("Failed to AECountItems in getFloatArray", stderr);
 		goto bail;
 	}
 	*outArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
@@ -262,7 +262,7 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 						  NULL, NULL, &value,
 						  sizeof(value), NULL);
 		if (err != noErr) {
-			fprintf(stderr, "Fail to AEGetNthPtr in getFloatArray\n");
+			fputs("Fail to AEGetNthPtr in getFloatArray", stderr);
 			goto bail;
 		}
 		CFNumberRef cfnum = CFNumberCreate(NULL, kCFNumberFloat32Type, &value);
@@ -273,7 +273,7 @@ bail:
 	AEDisposeDesc(&aeList);
 #if useLog
 	CFShow(*outArray);
-	fprintf(stderr, "end of getFloatArray\n");
+	fputs("end of getFloatArray", stderr);
 #endif	
 	return err;
 }
@@ -288,7 +288,7 @@ CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *err
 	if (*errPtr != noErr) goto bail;
 	value_ptr = malloc(data_size);
 	if (value_ptr == NULL) {
-		fprintf(stderr, "Faild to malloc in CFStringCreatePOSIXPathWithEvent\n");
+		fputs("Faild to malloc in CFStringCreatePOSIXPathWithEvent", stderr);
 		goto bail;
 	}
 	*errPtr = AEGetParamPtr(ev, theKey, typeFileURL, NULL, value_ptr, data_size, NULL);
@@ -349,7 +349,7 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 	UInt8 *dataPtr = malloc(dataSize);
 	if (dataPtr == NULL) {
 		*errPtr = errAEEventFailed;
-		fprintf(stderr, "Failed to malloc.\n");
+		fputs("Failed to malloc.", stderr);
 		goto bail;
 	}
 	*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
@@ -364,7 +364,7 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 		dataSize = actualSize;
 		dataPtr = (UInt8 *)realloc(dataPtr, dataSize);
 		if (dataPtr == NULL) {
-			fprintf(stderr, "Failed to reallocate memory\n");
+			fputs("Failed to reallocate memory", stderr);
 			goto bail;
 		}
 		*errPtr = AEGetParamPtr(ev, theKey, typeCode, &returnedType, dataPtr, dataSize, &actualSize);
@@ -404,7 +404,7 @@ OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
 		OSType type_data;
 		err = AEGetParamPtr(ev, theKey, typeCode, NULL, &type_data, dataSize, NULL);
 		if (err != noErr) {
-			fprintf(stderr, "Failed to AEGetParamPtr in isMissingValue\n");
+			fputs("Failed to AEGetParamPtr in isMissingValue", stderr);
 			goto bail;
 		}
 		if (type_data == cMissingValue) {
@@ -431,7 +431,6 @@ OSErr AEDescCreateUTF8Text(CFStringRef string, AEDesc* outDescPtr)
 		CFIndex maxLen = CFStringGetMaximumSizeForEncoding(charLen, kEncoding)+1; // +1 is for null termination.
 		buffer = malloc(sizeof(char)*maxLen);
 		CFStringGetCString(string, buffer, maxLen, kEncoding);
-		fprintf(stderr, buffer);
 		err = AECreateDesc(resultType, buffer, strlen(buffer), outDescPtr);
 		free(buffer);
 	}
@@ -505,7 +504,7 @@ bail:
 OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFStringEncoding kEncoding)
 {
 #if useLog
-	fprintf(stderr, "start putStringToEvent\n");
+	fputs("start putStringToEvent", stderr);
 #endif
 	OSErr err;	
 	AEDesc resultDesc;
@@ -516,7 +515,7 @@ OSErr putStringToEvent(AppleEvent *ev, AEKeyword keyword, CFStringRef inStr, CFS
 	AEDisposeDesc(&resultDesc);
 bail:
 #if useLog
-	fprintf(stderr, "end putStringToEvent\n");
+	fputs("end putStringToEvent", stderr);
 #endif
 	return err;
 }
