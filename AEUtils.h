@@ -33,5 +33,6 @@ OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply);
 //deprecated
 // use putStringToEvent
 // OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply);
-
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *outDesc);
+#endif

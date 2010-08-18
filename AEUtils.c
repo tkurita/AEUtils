@@ -588,6 +588,7 @@ bail:
 		return err;
 }
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *outDesc)
 {
 	OSErr err = noErr;
@@ -605,3 +606,4 @@ bail:
 	safeRelease(source_text);
 	return err;
 }
+#endif
