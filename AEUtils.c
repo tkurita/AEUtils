@@ -100,13 +100,6 @@ bail:
 	return outArray;
 }
 
-/* deprecated */
-OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray)
-{
-	OSErr err = noErr;
-	*outArray = CFMutableArrayCreatePOSIXPathsWithEvent(ev, theKey, &err);
-	return err;
-}
 
 OSErr getURLFromUTextDesc(const AEDesc *utdesc_p, CFURLRef *urlRef_p)
 {
@@ -379,15 +372,6 @@ bail:
 	return outStr;	
 }
 
-/* deprecated */
-OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr)
-{
-	OSErr err = noErr;
-	*outStr = CFStringCreateWithEvent(ev, theKey, &err);
-	return err;
-}
-
-
 OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)
 {
 	OSErr err;
@@ -607,3 +591,18 @@ bail:
 	return err;
 }
 #endif
+
+#pragma mark deprecated
+OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray) // deprecated
+{
+	OSErr err = noErr;
+	*outArray = CFMutableArrayCreatePOSIXPathsWithEvent(ev, theKey, &err);
+	return err;
+}
+
+OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr) //deprecated
+{
+	OSErr err = noErr;
+	*outStr = CFStringCreateWithEvent(ev, theKey, &err);
+	return err;
+}

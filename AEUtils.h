@@ -5,12 +5,11 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(const AppleEvent *ev,
 
 CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
 CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
+
 OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr);
 
 OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
-//OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);// deprecated
 OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
-//OSErr getStringValue(const AppleEvent *ev, AEKeyword theKey, CFStringRef *outStr);// deprecated
 OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef);
 OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng);
 
@@ -30,9 +29,11 @@ OSErr putMissingValueToReply(AppleEvent *reply);
 OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply);
 OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply);
 
-//deprecated
-// use putStringToEvent
-// OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply);
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *outDesc);
 #endif
+
+//deprecated
+// 
+// OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply); // use putStringToEvent
+// OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray); // use CFMutableArrayCreatePOSIXPathsWithEvent
