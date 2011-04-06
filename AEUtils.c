@@ -10,7 +10,7 @@ void showAEDesc(const AppleEvent *ev)
 	Handle result;
 	OSStatus resultStatus;
 	resultStatus = AEPrintDescToHandle(ev,&result);
-	printf("%s\n",*result);
+	fprintf(stderr, "%s\n",*result);
 	DisposeHandle(result);
 }
 
@@ -370,6 +370,43 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 	free(dataPtr);
 bail:
 	return outStr;	
+}
+
+CFStringRef CFStringCreateWithAEDesc(const AEDesc *desc, OSErr *errPtr)
+{
+	CFStringEncoding encodeKey;
+	CFStringRef result = NULL;
+	Boolean isExternalRepresentation = false;
+	void *dataPtr = NULL;
+	
+	switch (desc->descriptorType) {
+		case typeChar:
+			encodeKey = CFStringGetSystemEncoding();
+			break;
+		case typeUTF8Text:
+			encodeKey = kCFStringEncodingUTF8;
+			break;
+		case typeUnicodeText:
+			encodeKey = kCFStringEncodingUnicode;
+			break;
+		case typeUTF16ExternalRepresentation:
+			encodeKey = kCFStringEncodingUTF16;
+			isExternalRepresentation = true;
+			break;
+		default :
+			goto bail;
+	}
+	
+	Size dataSize = AEGetDescDataSize (desc);
+	dataPtr = malloc(dataSize);
+	*errPtr = AEGetDescData(desc, dataPtr, dataSize);
+	if (noErr != *errPtr) {
+		goto bail;
+	}
+	result = CFStringCreateWithBytes(kCFAllocatorDefault, dataPtr, dataSize, encodeKey, isExternalRepresentation);	
+bail:
+	if (dataPtr) free(dataPtr);
+	return result;
 }
 
 OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng)

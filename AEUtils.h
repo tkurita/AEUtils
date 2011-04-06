@@ -4,6 +4,8 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(const AppleEvent *ev,
 														  AEKeyword theKey, OSErr *errPtr);
 
 CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
+CFStringRef CFStringCreateWithAEDesc(const AEDesc *desc, OSErr *errPtr);
+
 CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
 
 OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr);
