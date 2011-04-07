@@ -620,7 +620,9 @@ OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *
 	err = OSACopySourceString(component, script_id, kOSAModeNull, &source_text);
 	if (noErr != err) goto bail;
 	CFStringRef plain_text = CFAttributedStringGetString(source_text);
+#if useLog
 	CFShow(plain_text);
+#endif	
 	err = AEDescCreateWithCFString(plain_text, kCFStringEncodingUTF8, outDesc);
 bail:
 	OSADispose(component, script_id);
