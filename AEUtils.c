@@ -501,6 +501,14 @@ OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, A
 	return err;
 }
 
+OSErr AEDescCreateMissingValue(AEDesc *outDescPtr)
+{
+	const static DescType missingValue = cMissingValue;
+	OSErr err = AECreateDesc(typeType, &missingValue, sizeof(missingValue), outDescPtr);
+	return err;
+}
+
+
 OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, CFStringEncoding kEncoding)
 {
 	OSErr err;

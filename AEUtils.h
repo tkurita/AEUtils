@@ -9,6 +9,7 @@ CFStringRef CFStringCreateWithAEDesc(const AEDesc *desc, OSErr *errPtr);
 CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *errPtr);
 
 OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr);
+OSErr AEDescCreateMissingValue(AEDesc *outDescPtr);
 
 OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
 OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
