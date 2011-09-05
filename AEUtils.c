@@ -549,6 +549,24 @@ bail:
 	return err;
 }
 
+OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool)
+{
+#if useLog
+	fputs("start putBooleanToEvent", stderr);
+#endif
+	OSErr err;
+	DescType resultType = (inBool? typeTrue:typeFalse);
+	AEDesc resultDesc;
+	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
+	err=AEPutParamDesc(ev, keyword, &resultDesc);
+	AEDisposeDesc(&resultDesc);
+#if useLog
+	fputs("end putBooleanToEvent", stderr);
+#endif
+	return err;
+}
+
+
 OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply)
 {
 // kEncoding can be omitted to specify with giving NULL

@@ -19,7 +19,8 @@ OSErr isMissingValue(const AppleEvent *ev, AEKeyword theKey, Boolean *ismsng);
 void showAEDesc(const AppleEvent *ev);
 void safeRelease(CFTypeRef theObj);
 OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, CFStringEncoding kEncoding);
-OSErr putBoolToReply(Boolean aBool, AppleEvent *reply);
+OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool);
+
 
 /*
  == keyword 
@@ -38,5 +39,6 @@ OSErr sourceStringOfAEDesc(ComponentInstance component, AEDesc* inDesc, AEDesc *
 
 //deprecated
 // 
+OSErr putBoolToReply(Boolean aBool, AppleEvent *reply);
 // OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply); // use putStringToEvent
 // OSErr getPOSIXPathArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray); // use CFMutableArrayCreatePOSIXPathsWithEvent
