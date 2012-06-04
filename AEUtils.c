@@ -315,7 +315,9 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 	if ((*errPtr != noErr) || (typeCode == typeNull)){
 		goto bail;
 	}
-	
+#if useLog
+	showAEDesc(ev);
+#endif	
 	if (dataSize == 0) {
 		outStr = CFSTR("");
 		goto bail;
@@ -352,7 +354,7 @@ CFStringRef CFStringCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSEr
 	}
 	if (actualSize > dataSize) {
 #if useLog
-		printf("buffere size is allocated. data:%i actual:%i\n", dataSize, actualSize);
+		printf("buffere size is allocated. data:%i actual:%i\n", (int)dataSize, (int)actualSize);
 #endif	
 		dataSize = actualSize;
 		dataPtr = (UInt8 *)realloc(dataPtr, dataSize);
