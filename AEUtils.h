@@ -10,7 +10,7 @@ CFURLRef CFURLCreateWithEvent(const AppleEvent *ev, AEKeyword theKey, OSErr *err
 
 OSErr AEDescCreateWithCFString(CFStringRef string, CFStringEncoding kEncoding, AEDesc* outDescPtr);
 OSErr AEDescCreateMissingValue(AEDesc *outDescPtr);
-
+OSErr AEDescCreateWithCFURL(CFURLRef url, AEDesc* outDescPtr);
 OSErr getBoolValue(const AppleEvent *ev, AEKeyword theKey,  Boolean *outValue);
 OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *outArray);
 OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef);
@@ -20,7 +20,7 @@ void showAEDesc(const AppleEvent *ev);
 void safeRelease(CFTypeRef theObj);
 OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, CFStringEncoding kEncoding);
 OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool);
-
+OSErr putFileURLToEvent(AppleEvent *ev, AEKeyword keyword, CFURLRef inURL);
 
 /*
  == keyword 

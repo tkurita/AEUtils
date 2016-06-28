@@ -510,6 +510,19 @@ OSErr AEDescCreateMissingValue(AEDesc *outDescPtr)
 	return err;
 }
 
+OSErr AEDescCreateWithCFURL(CFURLRef url, AEDesc* outDescPtr)
+{
+    OSStatus err;
+    CFDataRef data = CFURLCreateData(kCFAllocatorDefault, url, kCFStringEncodingUTF8, true);
+    if (data != NULL) {
+        err = AECreateDesc('furl', CFDataGetBytePtr(data),
+                           CFDataGetLength(data), outDescPtr);
+        CFRelease(data);
+    } else {
+        err = kCFURLErrorUnknown;
+    }
+    return err;
+}
 
 OSErr putStringListToEvent(AppleEvent *ev, AEKeyword keyword, CFArrayRef array, CFStringEncoding kEncoding)
 {
@@ -568,6 +581,24 @@ OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool)
 	return err;
 }
 
+OSErr putFileURLToEvent(AppleEvent *ev, AEKeyword keyword, CFURLRef inURL)
+{
+#if useLog
+    fputs("start putFileURLToEvent", stderr);
+#endif
+    OSErr err;
+    AEDesc resultDesc;
+    err = AEDescCreateWithCFURL(inURL, &resultDesc);
+    if (err != noErr) goto bail;
+    
+    err = AEPutParamDesc(ev, keyword, &resultDesc);
+    AEDisposeDesc(&resultDesc);
+bail:
+#if useLog
+    fputs("end putFileURLToEvent", stderr);
+#endif
+    return err;
+}
 
 OSErr putStringToReply(CFStringRef inStr, CFStringEncoding kEncoding, AppleEvent *reply)
 {
