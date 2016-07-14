@@ -49,8 +49,7 @@ CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(
 	CFMutableArrayRef outArray = NULL;
 	DescType typeCode;
 	Size dataSize;
-	AEDescList  aeList;
-	AECreateDesc(typeNull, NULL, 0, &aeList);
+    AEDescList  aeList = {typeNull, NULL};
 	
 	*errPtr = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
 	if ((*errPtr != noErr) || (typeCode == typeNull)){
@@ -228,8 +227,8 @@ OSErr getFloatArray(const AppleEvent *ev, AEKeyword theKey,  CFMutableArrayRef *
 	OSErr err;
 	DescType typeCode;
 	Size dataSize;
-	AEDescList aeList;
-	AECreateDesc(typeNull, NULL, 0, &aeList);
+    AEDescList aeList = {typeNull, NULL};
+	
 	err = AESizeOfParam(ev, theKey, &typeCode, &dataSize);
 	if ((err != noErr) || (typeCode == typeNull)){
 		fputs("Failed to AESizeOfParam in getFloatArray", stderr);
@@ -571,8 +570,7 @@ OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool)
 #endif
 	OSErr err;
 	DescType resultType = (inBool? typeTrue:typeFalse);
-	AEDesc resultDesc;
-	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
+    AEDesc resultDesc = {typeNull, NULL};
 	err=AEPutParamDesc(ev, keyword, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 #if useLog
@@ -613,8 +611,7 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 #endif
 	OSErr err;
 	DescType resultType = (aBool? typeTrue:typeFalse);
-	AEDesc resultDesc;
-	err=AECreateDesc(resultType, NULL, 0, &resultDesc);
+    AEDesc resultDesc = {typeNull, NULL};
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 #if useLog
