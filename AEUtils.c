@@ -570,7 +570,7 @@ OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool)
 #endif
 	OSErr err;
 	DescType resultType = (inBool? typeTrue:typeFalse);
-    AEDesc resultDesc = {typeNull, NULL};
+    AEDesc resultDesc = {resultType, NULL};
 	err=AEPutParamDesc(ev, keyword, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 #if useLog
