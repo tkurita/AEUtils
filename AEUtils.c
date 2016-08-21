@@ -1,6 +1,8 @@
 #include "AEUtils.h"
 #include <sys/param.h>
 #include <Carbon/Carbon.h>
+#include <syslog.h>
+
 #define bufferSize MAXPATHLEN+1 	
 
 #define useLog 0
@@ -10,7 +12,7 @@ void showAEDesc(const AppleEvent *ev)
 	Handle result;
 	OSStatus resultStatus;
 	resultStatus = AEPrintDescToHandle(ev,&result);
-	fprintf(stderr, "%s\n",*result);
+    syslog(LOG_NOTICE, "%s", *result);
 	DisposeHandle(result);
 }
 
