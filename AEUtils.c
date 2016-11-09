@@ -613,7 +613,7 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 #endif
 	OSErr err;
 	DescType resultType = (aBool? typeTrue:typeFalse);
-    AEDesc resultDesc = {typeNull, NULL};
+    AEDesc resultDesc = {resultType, NULL};
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 #if useLog
