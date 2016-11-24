@@ -572,8 +572,9 @@ OSErr putBooleanToEvent(AppleEvent *ev, AEKeyword keyword, Boolean inBool)
 #endif
 	OSErr err;
 	DescType resultType = (inBool? typeTrue:typeFalse);
-    AEDesc resultDesc = {resultType, NULL};
-	err=AEPutParamDesc(ev, keyword, &resultDesc);
+    AEDesc resultDesc;
+    AECreateDesc(resultType, NULL, 0, &resultDesc);
+	err = AEPutParamDesc(ev, keyword, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 #if useLog
 	fputs("end putBooleanToEvent", stderr);
@@ -613,7 +614,8 @@ OSErr putBoolToReply(Boolean aBool, AppleEvent *reply)
 #endif
 	OSErr err;
 	DescType resultType = (aBool? typeTrue:typeFalse);
-    AEDesc resultDesc = {resultType, NULL};
+    AEDesc resultDesc;
+    AECreateDesc(resultType, NULL, 0, &resultDesc);
 	err=AEPutParamDesc(reply, keyAEResult, &resultDesc);
 	AEDisposeDesc(&resultDesc);
 #if useLog
