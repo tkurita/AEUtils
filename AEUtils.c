@@ -6,7 +6,9 @@
 #define bufferSize MAXPATHLEN+1 	
 
 #define useLog 0
+#define useDeprected 0
 
+#if useDeprected
 void showAEDesc(const AppleEvent *ev)
 {
 	Handle result;
@@ -15,6 +17,7 @@ void showAEDesc(const AppleEvent *ev)
     syslog(LOG_NOTICE, "%s", *result);
 	DisposeHandle(result);
 }
+#endif
 
 void safeRelease(CFTypeRef theObj)
 {
@@ -101,7 +104,7 @@ bail:
 	return outArray;
 }
 
-
+#if useDeprected
 OSErr getURLFromUTextDesc(const AEDesc *utdesc_p, CFURLRef *urlRef_p)
 {
 	OSErr err;
@@ -127,7 +130,9 @@ bail:
 	free(theData);
 	return err;
 }
+#endif
 
+#if useDeprected
 OSStatus getFSRefFromUTextAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_p)
 {
 	AEDesc givenDesc;
@@ -155,6 +160,7 @@ bail:
 	safeRelease(urlRef);
 	return err;
 }
+#endif
 
 OSStatus getFSRefFromAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_p)
 {
@@ -168,6 +174,7 @@ OSStatus getFSRefFromAE(const AppleEvent *ev, AEKeyword theKey, FSRef *ref_p)
 	return err;
 }
 
+#if useDeprected
 OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef_p)
 {
 	OSErr err = noErr;		
@@ -198,6 +205,7 @@ OSErr getFSRef(const AppleEvent *ev, AEKeyword theKey, FSRef *outFSRef_p)
 bail:	
 	return err;
 }
+#endif
 
 CFNumberType CFNumberTypeWithAENumberType(DescType typeCode)
 {
@@ -635,6 +643,7 @@ OSErr putMissingValueToReply(AppleEvent *reply)
 	return err;
 }
 
+#if useDeprected
 OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply)
 {
 	OSErr err;
@@ -647,6 +656,7 @@ OSErr putAliasToReply(AliasHandle inAlias, AppleEvent *reply)
 	AEDisposeDesc(&resultDesc);
 	return err;
 }
+#endif
 
 OSErr putFilePathToReply(CFURLRef inURL, AppleEvent *reply)
 {	
