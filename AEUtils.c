@@ -6,7 +6,6 @@
 #define bufferSize MAXPATHLEN+1 	
 
 #define useLog 0
-#define useDeprected 0
 
 #if useDeprected
 void showAEDesc(const AppleEvent *ev)
