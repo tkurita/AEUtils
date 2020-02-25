@@ -1,6 +1,5 @@
 #include <ApplicationServices/ApplicationServices.h>
 
-#define useDeprected 0
 CFMutableArrayRef CFMutableArrayCreatePOSIXPathsWithEvent(const AppleEvent *ev, 
 														  AEKeyword theKey, OSErr *errPtr);
 
